@@ -23,6 +23,22 @@ GameObject.prototype.DestroyIfOutOfBounds = function () {
     }
 };
 
+GameObject.prototype.BlockIfOutOfBounds = function () {
+    console.log(this.x + ' ' + this.y);
+    if (this.x < 0) {
+        this.x = 0
+    }
+    if (canvas.width < this.x) {
+        this.x = canvas.width;
+    }
+    if (this.y < 0) {
+        this.y = 0;
+    }
+    if (canvas.height < this.y) {
+        this.y = canvas.height;
+    }
+};
+
 
 function Player(x, y, sprite){
     GameObject.call(this, x, y, sprite);
@@ -34,6 +50,7 @@ Player.prototype.constructor = Player;
 
 Player.prototype.Update = function () {
     this.Move(...gm.Axes);
+    this.BlockIfOutOfBounds();
 
     if (gm.Keys['Space'] && this.timeSinceFired > 15) {
         let distanceVector = [0, -this.sprite[2] / 2];
@@ -128,7 +145,7 @@ function GameManager(spriteData) {
 
     setInterval(this.Update.bind(this), 16);
 }
-GameManager.prototype.Draw = function (item, index) {
+GameManager.prototype.Draw = function (item) {
     if (item.sprite !== null) {
         ctx.save();
         // move to the center of the canvas
