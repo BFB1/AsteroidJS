@@ -135,11 +135,16 @@ function GameManager(spriteData) {
     this.LoadSprites();
 
     this.gameObjects = [];
+    this.score = 0;
 
     document.addEventListener('keydown', this.KeyHandler.bind(this));
     document.addEventListener('keyup', this.KeyHandler.bind(this));
     this.Axes = [0, 0];
     this.Keys = {};
+
+    ctx.font = "40px arial";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.textAlign = "center";
 
     setInterval(this.Update.bind(this), 16);
 }
@@ -154,6 +159,10 @@ GameManager.prototype.Draw = function (item) {
         ctx.drawImage(item.sprite[0],-item.sprite[1]/2,-item.sprite[2]/2, item.sprite[1], item.sprite[2]);
         ctx.restore();
     }
+};
+GameManager.prototype.DrawUI = function () {
+    ctx.fillText(this.score, canvas.width / 2, 60);
+
 };
 GameManager.prototype.LoadSprites = function () {
     for (const [key, value] of Object.entries(this.spriteMap)) {
@@ -171,6 +180,7 @@ GameManager.prototype.Update = function () {
     }
     this.gameObjects.forEach(this.CheckCollisions.bind(this));
     this.gameObjects.forEach(this.Draw);
+    this.DrawUI();
 };
 GameManager.prototype.CheckCollisions = function (item) {
     if (item.sprite && item.sprite[4]) {
@@ -180,6 +190,7 @@ GameManager.prototype.CheckCollisions = function (item) {
                 if (Distance(item.x, item.y, currentObject.x, currentObject.y) < item.sprite[1] * 0.3 + currentObject.sprite[1] * 0.3) {
                     this.RemoveGameObject(currentObject);
                     this.RemoveGameObject(item);
+                    this.score++;
                 }
             }
         }
