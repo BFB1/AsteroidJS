@@ -178,7 +178,6 @@ function GameManager(spriteData) {
     ctx.fillStyle = "#FFFFFF";
     ctx.textAlign = "center";
 
-    // TODO setInterval() returns an interval id which can later be passed to clearInterval()
     this.updateIntervalId = setInterval(this.Update.bind(this), 16);
     this.gameOver = false;
 }
