@@ -22,6 +22,14 @@ body {
   background-color: black;
 }
 
+.GithubLink {
+  position: fixed;
+  top: 5px;
+  left: 10px;
+  color: white;
+  text-decoration: none;
+  font-size: 2em;
+}
 
 
 
