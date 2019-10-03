@@ -198,6 +198,8 @@ GameManager.prototype.CheckCollisions = function (item) {
                         this.score++;
                     }
 
+                    collisionSound.play();
+
                     this.RemoveGameObject(currentObject);
                     this.RemoveGameObject(item);
                 }
@@ -271,6 +273,8 @@ let gameGraphicData = {
     "Missile": [null, 32, 32, "img/missile.png", true],
     "Background": [null, canvas.width, canvas.height, "img/background.png", false]
 };
+let collisionSound = new Audio("Audio/AsteroidImpact.wav");
+
 let toRadians = Math.PI / 180;
 
 let gm = new GameManager(gameGraphicData);
