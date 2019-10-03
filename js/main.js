@@ -41,7 +41,7 @@ GameObject.prototype.BlockIfOutOfBounds = function () {
 
 function Player(x, y, sprite){
     GameObject.call(this, x, y, sprite);
-
+    this.name = "Player";
     this.timeSinceFired = Infinity;
 }
 Player.prototype = Object.create(GameObject.prototype);
@@ -80,6 +80,9 @@ Player.prototype.Update = function () {
 
 function Asteroid(x, y, sprite){
     GameObject.call(this, x, y, sprite);
+
+    this.name = "Asteroid";
+
     this.velocity = [];
     do {
         this.velocity[0] = ((Math.round(Math.random() * 4) - 2) * canvas.height / 160) * 0.1;
@@ -118,6 +121,8 @@ AsteroidHandler.prototype.Update = function () {
 
 function Missile(x, y, sprite, rotation, velocity){
     GameObject.call(this, x, y, sprite);
+    this.name = "Missile";
+
     this.velocity = velocity.map((x) => x * 0.1);
     this.rotation = rotation;
 }
@@ -146,6 +151,7 @@ function GameManager(spriteData) {
     ctx.fillStyle = "#FFFFFF";
     ctx.textAlign = "center";
 
+    // TODO setInterval() returns an interval id which can later be passed to clearInterval()
     setInterval(this.Update.bind(this), 16);
 }
 GameManager.prototype.Draw = function (item) {
@@ -188,9 +194,12 @@ GameManager.prototype.CheckCollisions = function (item) {
             let currentObject = this.gameObjects[i];
             if (item !== currentObject && currentObject.sprite && currentObject.sprite[4]) {
                 if (Distance(item.x, item.y, currentObject.x, currentObject.y) < item.sprite[1] * 0.3 + currentObject.sprite[1] * 0.3) {
+                    if (currentObject.name === "Missile" && item.name !== "Player" || item.name === "Missile" && currentObject.name !== "Player") {
+                        this.score++;
+                    }
+
                     this.RemoveGameObject(currentObject);
                     this.RemoveGameObject(item);
-                    this.score++;
                 }
             }
         }
