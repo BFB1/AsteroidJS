@@ -43,6 +43,8 @@ function Player(x, y, sprite){
     GameObject.call(this, x, y, sprite);
     this.name = "Player";
     this.timeSinceFired = Infinity;
+
+    addEventListener('OnCollision', this.OnCollision.bind(this))
 }
 Player.prototype = Object.create(GameObject.prototype);
 Player.prototype.constructor = Player;
@@ -75,6 +77,12 @@ Player.prototype.Update = function () {
     }
 
     this.timeSinceFired++;
+};
+
+Player.prototype.OnCollision = function (collision) {
+    if (collision.detail[0].name === this.name || collision.detail[1].name === this.name) {
+        gm.gameOver = true;
+    }
 };
 
 
@@ -118,6 +126,25 @@ AsteroidHandler.prototype.Update = function () {
     }
 };
 
+function ScoreHandler(x, y){
+    GameObject.call(this, x, y);
+
+    this.score = 0;
+    window.addEventListener('OnCollision', this.OnCollision.bind(this))
+}
+ScoreHandler.prototype = Object.create(GameObject.prototype);
+ScoreHandler.prototype.constructor = ScoreHandler;
+
+ScoreHandler.prototype.Update = function () {
+    gm.uiBuffer.push([this.score, canvas.width / 2, 60])
+};
+
+ScoreHandler.prototype.OnCollision = function (collision) {
+    if (collision.detail[0].name === "Missile" || collision.detail[1].name === "Missile") {
+        this.score++;
+    }
+};
+
 
 function Missile(x, y, sprite, rotation, velocity){
     GameObject.call(this, x, y, sprite);
@@ -140,17 +167,16 @@ function GameManager(spriteData) {
     this.LoadSprites();
 
     this.gameObjects = [];
-    this.score = 0;
 
     document.addEventListener('keydown', this.KeyHandler.bind(this));
     document.addEventListener('keyup', this.KeyHandler.bind(this));
     this.Axes = [0, 0];
     this.Keys = {};
 
+    this.uiBuffer = [];
     ctx.font = "40px arial";
     ctx.fillStyle = "#FFFFFF";
     ctx.textAlign = "center";
-
 
     // TODO setInterval() returns an interval id which can later be passed to clearInterval()
     this.updateIntervalId = setInterval(this.Update.bind(this), 16);
@@ -168,9 +194,8 @@ GameManager.prototype.Draw = function (item) {
         ctx.restore();
     }
 };
-GameManager.prototype.DrawUI = function () {
-    ctx.fillText(this.score, canvas.width / 2, 60);
-
+GameManager.prototype.DrawUI = function (item) {
+    ctx.fillText(item[0], item[1], item[2])
 };
 GameManager.prototype.LoadSprites = function () {
     for (const [key, value] of Object.entries(this.spriteMap)) {
@@ -189,7 +214,8 @@ GameManager.prototype.Update = function () {
     }
     this.gameObjects.forEach(this.CheckCollisions.bind(this));
     this.gameObjects.forEach(this.Draw);
-    this.DrawUI();
+    this.uiBuffer.forEach(this.DrawUI);
+    this.uiBuffer.length = 0;
 };
 GameManager.prototype.CheckCollisions = function (item) {
     if (item.sprite && item.sprite[4]) {
@@ -197,15 +223,9 @@ GameManager.prototype.CheckCollisions = function (item) {
             let currentObject = this.gameObjects[i];
             if (item !== currentObject && currentObject.sprite && currentObject.sprite[4]) {
                 if (Distance(item.x, item.y, currentObject.x, currentObject.y) < item.sprite[1] * 0.3 + currentObject.sprite[1] * 0.3) {
-                    if (currentObject.name === "Missile" && item.name !== "Player" || item.name === "Missile" && currentObject.name !== "Player") {
-                        this.score++;
-                    }
+                    dispatchEvent(new CustomEvent('OnCollision', {detail: [item, currentObject]}));
 
                     collisionSound.play();
-
-                    if (currentObject.name === "Player" || item.name === "Player") {
-                        this.gameOver = true;
-                    }
 
                     this.RemoveGameObject(currentObject);
                     this.RemoveGameObject(item);
@@ -260,13 +280,14 @@ GameManager.prototype.RemoveGameObject = function (deadObject) {
 GameManager.prototype.GameOver = function () {
     clearInterval(this.updateIntervalId);
     ctx.font = "80px arial";
-    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+    this.DrawUI(['GAME OVER', canvas.width / 2, canvas.height / 2]);
 };
 
 function initializeData() {
     gm.AddNewGameObject(new GameObject(canvas.width / 2, canvas.height / 2, gameGraphicData["Background"]));
     gm.AddNewGameObject(new Player(canvas.width / 2, canvas.height / 2, gameGraphicData["Player"]));
     gm.AddNewGameObject(new AsteroidHandler(0, 0));
+    gm.AddNewGameObject(new ScoreHandler(0, 0));
 }
 
 
