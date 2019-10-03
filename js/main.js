@@ -151,8 +151,10 @@ function GameManager(spriteData) {
     ctx.fillStyle = "#FFFFFF";
     ctx.textAlign = "center";
 
+
     // TODO setInterval() returns an interval id which can later be passed to clearInterval()
-    setInterval(this.Update.bind(this), 16);
+    this.updateIntervalId = setInterval(this.Update.bind(this), 16);
+    this.gameOver = false;
 }
 GameManager.prototype.Draw = function (item) {
     if (item.sprite !== null) {
@@ -178,6 +180,7 @@ GameManager.prototype.LoadSprites = function () {
     }
 };
 GameManager.prototype.Update = function () {
+    if (this.gameOver) {this.GameOver(); return;}
     for (let i = 0; i < this.gameObjects.length; i++) {
         let currentObject = this.gameObjects[i];
         if (typeof currentObject.Update === "function") {
@@ -199,6 +202,10 @@ GameManager.prototype.CheckCollisions = function (item) {
                     }
 
                     collisionSound.play();
+
+                    if (currentObject.name === "Player" || item.name === "Player") {
+                        this.gameOver = true;
+                    }
 
                     this.RemoveGameObject(currentObject);
                     this.RemoveGameObject(item);
@@ -249,6 +256,11 @@ GameManager.prototype.RemoveGameObject = function (deadObject) {
     if (index > -1) {
         gm.gameObjects.splice(index, 1);
     }
+};
+GameManager.prototype.GameOver = function () {
+    clearInterval(this.updateIntervalId);
+    ctx.font = "80px arial";
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
 };
 
 function initializeData() {
