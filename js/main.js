@@ -145,7 +145,6 @@ ScoreHandler.prototype.OnCollision = function (collision) {
     }
 };
 
-
 function Missile(x, y, sprite, rotation, velocity){
     GameObject.call(this, x, y, sprite);
     this.name = "Missile";
@@ -161,6 +160,23 @@ Missile.prototype.Update = function () {
     this.DestroyIfOutOfBounds();
 };
 
+function AudioManager(){
+    this.available  = [];
+
+    for (let i = 0; i < 5; i++) {
+        let newSample = new Audio("Audio/AsteroidImpact.wav");
+        newSample.addEventListener('ended', this.SwitchBack.bind(this));
+        this.available[i] = newSample;
+    }
+
+    window.addEventListener('OnCollision', this.OnCollision.bind(this))
+}
+AudioManager.prototype.OnCollision = function () {
+    this.available.pop().play();
+};
+AudioManager.prototype.SwitchBack = function (result) {
+    this.available.push(result.path[0])
+};
 
 function GameManager(spriteData) {
     this.spriteMap = spriteData;
@@ -223,8 +239,6 @@ GameManager.prototype.CheckCollisions = function (item) {
             if (item !== currentObject && currentObject.sprite && currentObject.sprite[4]) {
                 if (Distance(item.x, item.y, currentObject.x, currentObject.y) < item.sprite[1] * 0.3 + currentObject.sprite[1] * 0.3) {
                     dispatchEvent(new CustomEvent('OnCollision', {detail: [item, currentObject]}));
-
-                    collisionSound.play();
 
                     this.RemoveGameObject(currentObject);
                     this.RemoveGameObject(item);
@@ -305,9 +319,9 @@ let gameGraphicData = {
     "Missile": [null, 32, 32, "img/missile.png", true],
     "Background": [null, canvas.width, canvas.height, "img/background.png", false]
 };
-let collisionSound = new Audio("Audio/AsteroidImpact.wav");
 
 let toRadians = Math.PI / 180;
 
 let gm = new GameManager(gameGraphicData);
+let am = new AudioManager();
 initializeData();
